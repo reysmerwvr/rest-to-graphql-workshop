@@ -12,6 +12,10 @@ const books = [
   {
     title: "Jurassic Park",
     author: "Michael Crichton"
+  },
+  {
+    title: "El perfume",
+    author: "Patrick Chusqui"
   }
 ];
 
@@ -26,10 +30,37 @@ const typeDefs = gql`
     author: String
   }
 
+  enum CharacterStatus {
+    Alive
+    Dead
+    unknown
+  }
+
+  type Character {
+    name: String
+    id: ID
+    status: CharacterStatus
+    episode: [String]
+    episodes: Int
+    image: String
+  }
+
+  type Episode {
+    name: String
+    id: ID
+    episode: String
+    characters: [String]
+    url: String
+  }
+
   # The "Query" type is the root of all GraphQL queries.
   # (A "Mutation" type will be covered later on.)
   type Query {
     books: [Book]
+    character(id: ID!): Character
+    episode(id: ID!): Episode
+    characters: [Character]
+    episodes: [Episode]
   }
 `;
 
@@ -37,7 +68,22 @@ const typeDefs = gql`
 // schema.  We'll retrieve books from the "books" array above.
 const resolvers = {
   Query: {
-    books: () => books
+    // books: () => books,
+    characters: () => fetchCharacters(),
+    episodes: () => fetchEpisodes(),
+    episode: (parent, args) => {
+      const { id } = args
+      return fetchEpisodeById(id)
+    },
+    character: (parent, args) => {
+      const { id } = args
+      return fetchCharacterById(id)
+    },
+  },
+  Character: {
+    episodes(parent) {
+      return parent.episode.length;
+    }
   }
 };
 
